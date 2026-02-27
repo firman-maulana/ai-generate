@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fallback untuk memastikan gambar terlihat */
+img, figure {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Tampilkan top nav secara default */
+.top-nav {
+  display: block !important;
+}

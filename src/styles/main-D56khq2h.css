@@ -982,7 +982,7 @@ body {
   height: calc(var(--spacing) * 5);
   content: var(--tw-content);
   width: calc(var(--spacing) * 5);
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
   content: var(--tw-content);
   position: relative;
@@ -1009,7 +1009,7 @@ body {
 }
 
 .details-body ul li:where(.dark, .dark *):before {
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
 }
 
@@ -1038,7 +1038,7 @@ body {
   height: calc(var(--spacing) * 5);
   content: var(--tw-content);
   width: calc(var(--spacing) * 5);
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
   position: relative;
 }
@@ -1048,7 +1048,7 @@ body {
 }
 
 .details-body ol li:first-child:where(.dark, .dark *):before {
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
 }
 
@@ -1071,7 +1071,7 @@ body {
   height: calc(var(--spacing) * 5);
   content: var(--tw-content);
   width: calc(var(--spacing) * 5);
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
   position: relative;
 }
@@ -1081,7 +1081,7 @@ body {
 }
 
 .details-body ol li:nth-child(2):where(.dark, .dark *):before {
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
 }
 
@@ -1104,7 +1104,7 @@ body {
   height: calc(var(--spacing) * 5);
   content: var(--tw-content);
   width: calc(var(--spacing) * 5);
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
   position: relative;
 }
@@ -1114,7 +1114,7 @@ body {
 }
 
 .details-body ol li:last-child:where(.dark, .dark *):before {
-  --tw-content: url("/images/icons/checkmark-white.svg");
+  --tw-content: url("/images/checkmark-white.svg");
   content: var(--tw-content);
 }
 
@@ -6926,7 +6926,7 @@ body {
   }
 
   .before\:content-\[url\(\'\/images\/icons\/checkmark-white\.svg\'\)\]:before {
-    --tw-content: url("/images/icons/checkmark-white.svg");
+    --tw-content: url("/images/checkmark-white.svg");
     content: var(--tw-content);
   }
 
@@ -10594,7 +10594,7 @@ body {
   }
 
   .dark\:before\:content-\[url\(\'\/images\/icons\/checkmark-white\.svg\'\)\]:where(.dark, .dark *):before {
-    --tw-content: url("/images/icons/checkmark-white.svg");
+    --tw-content: url("/images/checkmark-white.svg");
     content: var(--tw-content);
   }
 
@@ -12407,13 +12407,13 @@ svg.leaflet-zoom-animated {
 }
 
 .leaflet-control-layers-toggle {
-  background-image: url("./vendor/images/layers.png");
+  background-image: url("/images/layers.png");
   width: 36px;
   height: 36px;
 }
 
 .leaflet-retina .leaflet-control-layers-toggle {
-  background-image: url("./vendor/images/layers-2x.png");
+  background-image: url("/images/layers-2x.png");
   background-size: 26px 26px;
 }
 
@@ -12460,7 +12460,7 @@ svg.leaflet-zoom-animated {
 }
 
 .leaflet-default-icon-path {
-  background-image: url("./vendor/images/marker-icon.png");
+  background-image: url("/images/marker-icon.png");
 }
 
 .leaflet-container .leaflet-control-attribution {
@@ -13505,3 +13505,25 @@ svg.leaflet-zoom-animated {
   syntax: "*";
   inherits: false
 }
+
+  .demo-showcase-container {
+    transform-origin: center center;
+    backface-visibility: hidden;
+    will-change: transform, opacity, filter;
+    transition:
+      transform 0.9s cubic-bezier(0.23, 1, 0.32, 1),
+      opacity 0.9s cubic-bezier(0.23, 1, 0.32, 1),
+      filter 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .demo-showcase-closed {
+    transform: translateX(100%) scale(0.65) rotateY(20deg);
+    opacity: 0;
+    filter: blur(22px);
+  }
+
+  .demo-showcase-open {
+    transform: translateX(0) scale(1) rotateY(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
