@@ -5,7 +5,7 @@ import "@/styles/fonts.css";
 import "@/styles/main-D56khq2h.css";
 
 export const metadata = {
-  title: "AI Application - || Nexsas",
+  title: "AI Generator Video",
 };
 
 export default function RootLayout({ children }) {
