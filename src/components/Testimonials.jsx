@@ -1,3 +1,7 @@
+'use client'
+
+import Image from 'next/image'
+
 const testimonials = [
   {
     name: "Darrell Steward",
@@ -57,6 +61,12 @@ const Star = () => (
   </svg>
 );
 
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+              <path d="M17.8441 4.24219H20.6042L14.5741 11.0196L21.668 20.2422H16.1136L11.7631 14.6488L6.7852 20.2422H4.02341L10.4731 12.993L3.66797 4.24219H9.36342L13.2959 9.35481L17.8441 4.24219ZM16.8753 18.6176H18.4048L8.53238 5.78147H6.89117L16.8753 18.6176Z" fill="#12161F"></path>
+            </svg>
+);
+
 export default function Testimonials() {
   return (
     <section
@@ -94,19 +104,21 @@ export default function Testimonials() {
                   rel="noopener noreferrer"
                   aria-label={`Follow ${item.name} on X`}
                 >
-                  <img src="/images/x-icon.svg" alt="X icon" width={24} />
+                  <XIcon />
                 </a>
               </div>
 
               <p className="pb-6">{item.text}</p>
 
               <div className="flex items-center gap-3">
-                <img
+                <Image
                   src={item.avatar}
                   alt={`${item.name} avatar`}
+                  width={44}
+                  height={44}
                   className="size-11 rounded-full object-cover"
                 />
-                 <h3 className="text-tagline-1 sm:text-lg font-semibold leading-[1.5]">{item.name}</h3>
+                <h3 className="text-tagline-1 sm:text-lg font-semibold leading-[1.5]">{item.name}</h3>
               </div>
             </article>
           ))}
