@@ -26,12 +26,12 @@ export default function Footer() {
         <div data-ns-animate="" data-delay="0.3" className="xl:max-w-[306px]">
           <figure>
             <img
-              src="./images/shared/main-logo.svg"
+              src="./images/main-logo.svg"
               className="dark:hidden"
               alt="Nexsass"
             />
             <img
-              src="./images/shared/dark-logo.svg"
+              src="./images/dark-logo.svg"
               className="hidden dark:block"
               alt="Nexsass"
             />
@@ -329,123 +329,11 @@ export default function Footer() {
       </p>
     </div>
   </div>
-  <button
-    style={{ writingMode: "sideways-lr", textOrientation: "mixed" }}
-    id="open-demo-showcase"
-    className="text-accent text-tagline-1 fixed right-0 bottom-1/2 z-[99999] flex translate-y-1/2 cursor-pointer items-center gap-4 rounded-l-xl bg-[#DE4A40] pt-4 pb-1 font-medium sm:pr-1 sm:pl-1"
-  >
-    <span className="">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={44}
-        height={44}
-        viewBox="0 0 44 44"
-        fill="none"
-      >
-        <path
-          d="M10 44C4.47715 44 0 39.5228 0 34L0 0L44 0L44 44L10 44Z"
-          fill="#1A1A1C"
-          fillOpacity="0.1"
-        />
-        <path
-          d="M16.1728 24.1932L14 21.9995L16.1728 19.8059L18.3456 21.9995L16.1728 24.1932Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M23.2157 12.6936L25.3886 10.5L27.5614 12.6936L25.3886 14.8873L23.2157 12.6936Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M19.2456 27.2955L17.0728 25.1018L19.2456 22.9082L21.4184 25.1018L19.2456 27.2955Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M20.1429 15.7959L22.3157 13.6023L24.4885 15.7959L22.3157 17.9895L20.1429 15.7959Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M22.3184 30.3977L20.1456 28.2041L22.3184 26.0105L24.4912 28.2041L22.3184 30.3977Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M17.0701 18.8982L19.2429 16.7045L21.4157 18.8982L19.2429 21.0918L17.0701 18.8982Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M25.3912 33.5L23.2184 31.3064L25.3912 29.1127L27.564 31.3064L25.3912 33.5Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M20.1429 22.0005L22.3157 19.8068L24.4885 22.0005L22.3157 24.1941L20.1429 22.0005Z"
-          fill="#F5F5F7"
-        />
-        <path
-          d="M25.6544 22.0005L27.8272 19.8068L30 22.0005L27.8272 24.1941L25.6544 22.0005Z"
-          fill="#F5F5F7"
-        />
-      </svg>
-    </span>
-    <span>
-      <span className="demo-showcase-count">40</span>+ Pre built demos
-    </span>
-  </button>
-  <div
-    id="demo-showcase"
-    className="demo-showcase-container demo-showcase-closed fixed top-0 left-0 z-[99999] h-screen w-full"
-    data-lenis-prevent="true"
-  >
-    <button
-      id="demo-showcase-close"
-      className="bg-secondary fixed top-5 right-5 z-[999999] flex cursor-pointer items-center justify-center rounded-[80px] border-6 border-white p-2 shadow-[0_1px_2px_0_rgba(0,0,0,0.15)] lg:top-10 lg:right-10 lg:border-8 lg:p-4"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={24}
-        height={24}
-        viewBox="0 0 24 24"
-        fill="none"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="stroke-white"
-      >
-        <path d="M18 6 6 18" />
-        <path d="m6 6 12 12" />
-      </svg>
-    </button>
-    <div
-      className="bg-background-12 fixed top-0 left-0 h-screen w-full overflow-y-auto pt-14 pb-16"
-      style={{
-        touchAction: "pan-y",
-        WebkitOverflowScrolling: "touch",
-        overscrollBehavior: "contain"
-      }}
-    >
-      <div className="mx-auto max-w-[1560px] min-[1880px]:!px-0 md:px-4">
-        <div className="mb-12 text-center">
-          <h2 className="text-secondary text-center font-normal">
-            <span className="demo-showcase-count">40</span>+ Pre-built websites
-          </h2>
-        </div>
-        <div
-          id="demo-showcase-list"
-          className="grid grid-cols-12 gap-y-5 sm:gap-3 xl:gap-6"
-        />
-      </div>
-    </div>
-  </div>
 </footer>
-
-      {/* ================= DEMO SHOWCASE SCRIPT ================= */}
-      <Script
-        src="/js/demo-showcase.js"
-        strategy="afterInteractive"
-      />
 
       {/* ================= VENDOR SCRIPTS ================= */}
       <Script src="/js/swiper.min.js" strategy="afterInteractive" />
       <Script src="/js/leaflet.min.js" strategy="afterInteractive" />
-      <Script src="/js/vanilla-infinite-marquee.min.js" strategy="afterInteractive" />
       <Script src="/js/split-text.min.js" strategy="afterInteractive" />
       <Script src="/js/gsap.min.js" strategy="afterInteractive" />
       <Script src="/js/scroll-trigger.min.js" strategy="afterInteractive" />

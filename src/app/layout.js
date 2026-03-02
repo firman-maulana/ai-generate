@@ -1,3 +1,6 @@
+// FONT CSS (LOCAL)
+import "@/styles/fonts.css";
+
 // TEMPLATE CSS (WAJIB)
 import "@/styles/main-D56khq2h.css";
 

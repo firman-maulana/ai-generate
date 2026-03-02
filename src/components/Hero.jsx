@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export default function Hero() {
   return (
-    <section className="pt-23 max-[1920px]:px-5">
+    <section className="pt-14 md:pt-14 lg:pt-16 max-[1920px]:px-5">
       <div className="bg-background-12 max-w-[1880px] mx-auto relative pt-20 -mb-2 md:pt-30 border overflow-hidden border-background-12 rounded-3xl xl:rounded-4xl">
         {/* Decorative lines */}
         <div

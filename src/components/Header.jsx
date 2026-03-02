@@ -1,6 +1,70 @@
-<header>
+'use client'
+
+import { useEffect } from 'react'
+
+export default function Header() {
+  useEffect(() => {
+    const initMegaMenu = () => {
+      const navItems = document.querySelectorAll('.nav-item[data-menu]')
+      
+      navItems.forEach((item) => {
+        const menuId = item.getAttribute('data-menu')
+        const menu = document.getElementById(menuId)
+        const arrow = item.querySelector('.nav-arrow')
+        
+        if (!menu) return
+
+        let hideTimeout
+
+        const showMenu = () => {
+          clearTimeout(hideTimeout)
+          menu.classList.add('active')
+          menu.style.opacity = '1'
+          menu.style.pointerEvents = 'auto'
+          if (arrow) {
+            arrow.style.transform = 'rotate(180deg)'
+          }
+        }
+
+        const hideMenu = () => {
+          hideTimeout = setTimeout(() => {
+            menu.classList.remove('active')
+            menu.style.opacity = '0'
+            menu.style.pointerEvents = 'none'
+            if (arrow) {
+              arrow.style.transform = 'rotate(0deg)'
+            }
+          }, 100)
+        }
+
+        item.addEventListener('mouseenter', showMenu)
+        item.addEventListener('mouseleave', (e) => {
+          const relatedTarget = e.relatedTarget
+          if (!relatedTarget || !menu.contains(relatedTarget)) {
+            hideMenu()
+          }
+        })
+
+        menu.addEventListener('mouseenter', () => {
+          clearTimeout(hideTimeout)
+        })
+        menu.addEventListener('mouseleave', (e) => {
+          const relatedTarget = e.relatedTarget
+          if (!relatedTarget || !item.contains(relatedTarget)) {
+            hideMenu()
+          }
+        })
+      })
+    }
+
+    // Delay untuk memastikan DOM sudah siap
+    setTimeout(initMegaMenu, 500)
+  }, [])
+
+  return (
+    <header>
   <div
-    className="header-one lp:!max-w-[1290px] has-top-nav {=$class} fixed top-13.5 left-1/2 z-50 mx-auto flex w-full max-w-[350px] -translate-x-1/2 items-center justify-between rounded-full bg-white px-2.5 py-2.5 opacity-0 backdrop-blur-[25px] min-[425px]:max-w-[375px] min-[500px]:max-w-[450px] sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] xl:py-0"
+    className="header-one lp:!max-w-[1290px] fixed top-4 md:top-5 lg:top-6 left-1/2 z-50 mx-auto flex w-full max-w-[350px] -translate-x-1/2 items-center justify-between rounded-full bg-white px-2.5 py-2.5 opacity-0 backdrop-blur-[25px] min-[425px]:max-w-[375px] min-[500px]:max-w-[450px] sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] xl:py-0 shadow-lg"
     data-ns-animate=""
     data-direction="up"
     data-offset={100}
@@ -2809,3 +2873,6 @@ Mobile Menu
     </div>
   </aside>
 </header>
+
+  )
+}

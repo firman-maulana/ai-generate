@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import MarqueeWrapper from './MarqueeWrapper'
 
 export default function Features() {
   return (
@@ -70,7 +71,7 @@ export default function Features() {
                 data-delay="0.4"
               >
                 <div className="bg-background-12 space-y-7 rounded-2xl pt-[25px] pb-[27px]">
-                  <aside className="logos-marquee-container">
+                  <MarqueeWrapper direction="left" className="logos-marquee-container">
                     <VoiceRow
                       avatars={[
                         '15',
@@ -79,9 +80,9 @@ export default function Features() {
                         '18',
                       ]}
                     />
-                  </aside>
+                  </MarqueeWrapper>
 
-                  <aside className="logos-right-marquee-container">
+                  <MarqueeWrapper direction="right" className="logos-right-marquee-container">
                     <VoiceRow
                       avatars={[
                         '19',
@@ -90,7 +91,7 @@ export default function Features() {
                         '3',
                       ]}
                     />
-                  </aside>
+                  </MarqueeWrapper>
                 </div>
 
                 <div data-ns-animate data-delay="0.4" className="max-md:space-y-0.5">
@@ -112,15 +113,15 @@ export default function Features() {
                 <div className="flex items-center justify-center -space-x-12">
                   {['311', '312', '313'].map((img, i) => (
                     <figure
-                      key={img}
-                      className={`w-full max-w-[214px] overflow-hidden rounded-b-[15px] ${
-                        i === 0
-                          ? 'rotate-[12deg] shadow-13'
-                          : i === 2
-                          ? '-rotate-[12deg] shadow-13'
-                          : 'relative z-10'
-                      }`}
-                    >
+  key={img}
+  className={`w-full max-w-[214px] overflow-hidden rounded-b-[15px] ${
+    i === 0
+      ? 'feature-card-1 rotate-[12deg] shadow-13 z-0'
+      : i === 1
+      ? 'feature-card-2 relative z-10'
+      : 'feature-card-3 -rotate-[12deg] shadow-13 relative z-20'
+  }`}
+>
                       <Image
                         src={`/images/ns-img-${img}.png`}
                         alt="Completed file"

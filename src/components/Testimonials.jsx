@@ -3,22 +3,43 @@ const testimonials = [
     name: "Darrell Steward",
     avatar: "/images/ns-avatar-4.png",
     twitter: "https://x.com",
-    text: "As a small business owner, your service has been a lifesaver in managing cash flow and optimizing financial strategies.",
+    text: "As a small business owner, your service has been a lifesaver in managing cash flow and optimizing financial strategies. It has truly exceeded my expectations.",
     delay: "0.2",
   },
   {
     name: "Sarah Johnson",
     avatar: "/images/ns-avatar-5.png",
     twitter: "https://x.com",
-    text: "The voice duplication feature is absolutely incredible! I've created professional voiceovers in minutes.",
+    text: "The voice duplication feature is absolutely incredible! I've been able to create professional voiceovers for my content in minutes instead of hours.",
     delay: "0.3",
   },
   {
     name: "Michael Chen",
     avatar: "/images/ns-avatar-6.png",
     twitter: "https://x.com",
-    text: "This technology has revolutionized our podcast production. The quality is unbelievably realistic.",
+    text: "This technology has revolutionized our podcast production. The quality is so realistic that our listeners can't tell the difference from our original recordings.",
     delay: "0.4",
+  },
+  {
+    name: "Emma Rodriguez",
+    avatar: "/images/ns-avatar-6.png",
+    twitter: "https://x.com",
+    text: "As a language teacher, this tool has been invaluable for creating pronunciation examples in multiple languages. My students love the natural-sounding voices!",
+    delay: "0.5",
+  },
+  {
+    name: "David Kim",
+    avatar: "/images/ns-avatar-6.png",
+    twitter: "https://x.com",
+    text: "The accuracy and speed of voice generation is mind-blowing. We've reduced our audio production time by 80% while maintaining exceptional quality standards.",
+    delay: "0.6",
+  },
+  {
+    name: "Lisa Thompson",
+    avatar: "/images/ns-avatar-6.png",
+    twitter: "https://x.com",
+    text: "This technology has revolutionized our podcast production. The quality is so realistic that our listeners can't tell the difference from our original recordings.",
+    delay: "0.7",
   },
 ];
 
@@ -85,7 +106,7 @@ export default function Testimonials() {
                   alt={`${item.name} avatar`}
                   className="size-11 rounded-full object-cover"
                 />
-                <h3 className="font-semibold">{item.name}</h3>
+                 <h3 className="text-tagline-1 sm:text-lg font-semibold leading-[1.5]">{item.name}</h3>
               </div>
             </article>
           ))}

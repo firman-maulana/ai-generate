@@ -4,87 +4,93 @@ import { useEffect } from 'react'
 
 export default function AnimationInit() {
   useEffect(() => {
-    // Tunggu sampai semua script dimuat
     const initAnimations = () => {
-      // Cek apakah GSAP dan dependencies sudah dimuat
-      if (typeof window.gsap === 'undefined' || typeof window.Springer === 'undefined') {
+      // Cek apakah GSAP sudah dimuat
+      if (typeof window.gsap === 'undefined') {
+        // Jika GSAP tidak dimuat setelah 3 detik, tampilkan semua elemen
+        const timeout = setTimeout(() => {
+          const elements = document.querySelectorAll('[data-ns-animate]')
+          elements.forEach(elem => {
+            elem.style.opacity = '1'
+          })
+        }, 3000)
+        
         setTimeout(initAnimations, 100)
-        return
+        return () => clearTimeout(timeout)
+      }
+
+      const gsap = window.gsap
+      const ScrollTrigger = window.ScrollTrigger
+
+      if (ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger)
       }
 
       // Inisialisasi reveal elements
       const elements = document.querySelectorAll('[data-ns-animate]')
-      const Springer = window.Springer.default
 
       elements.forEach((elem) => {
         const duration = elem.getAttribute('data-duration') ? parseFloat(elem.getAttribute('data-duration')) : 0.6
         const delay = elem.getAttribute('data-delay') ? parseFloat(elem.getAttribute('data-delay')) : 0
         const offset = elem.getAttribute('data-offset') ? parseFloat(elem.getAttribute('data-offset')) : 60
-        const instant = elem.hasAttribute('data-instant') && elem.getAttribute('data-instant') !== 'false'
-        const start = elem.getAttribute('data-start') || 'top 90%'
-        const end = elem.getAttribute('data-end') || 'top 50%'
-        const direction = elem.getAttribute('data-direction') || 'down'
-        const useSpring = elem.hasAttribute('data-spring')
-        const spring = useSpring ? Springer(0.2, 0.8) : null
-        const rotation = elem.getAttribute('data-rotation') ? parseFloat(elem.getAttribute('data-rotation')) : 0
-        const animationType = elem.getAttribute('data-animation-type') || 'from'
+        const instant = elem.hasAttribute('data-instant')
+        const direction = elem.getAttribute('data-direction') || 'up'
 
-        elem.style.opacity = '1'
-        elem.style.filter = 'blur(0)'
-
-        let animationProps = {
-          opacity: animationType === 'to' ? 1 : 0,
-          filter: animationType === 'to' ? 'blur(0)' : 'blur(16px)',
+        let fromProps = {
+          opacity: 0,
           duration,
           delay,
-          ease: useSpring ? spring : 'power2.out'
+          ease: 'power2.out'
         }
 
-        if (rotation !== 0) {
-          animationProps.rotation = rotation
+        let toProps = {
+          opacity: 1,
+          duration,
+          delay,
+          ease: 'power2.out'
         }
 
-        if (!instant) {
-          animationProps.scrollTrigger = {
+        if (!instant && ScrollTrigger) {
+          toProps.scrollTrigger = {
             trigger: elem,
-            start,
-            end,
-            scrub: false
+            start: 'top 90%',
+            toggleActions: 'play none none none'
           }
         }
 
         switch (direction) {
           case 'left':
-            animationProps.x = -offset
+            fromProps.x = -offset
+            toProps.x = 0
             break
           case 'right':
-            animationProps.x = offset
+            fromProps.x = offset
+            toProps.x = 0
             break
           case 'down':
-            animationProps.y = offset
+            fromProps.y = offset
+            toProps.y = 0
             break
           case 'up':
           default:
-            animationProps.y = -offset
+            fromProps.y = -offset
+            toProps.y = 0
             break
         }
 
-        if (animationType === 'to') {
-          window.gsap.to(elem, animationProps)
-        } else {
-          window.gsap.from(elem, animationProps)
-        }
+        gsap.fromTo(elem, fromProps, toProps)
       })
-
-      // Tampilkan top nav jika ada
-      const topNav = document.querySelector('.top-nav')
-      if (topNav) {
-        topNav.style.display = 'block'
-      }
     }
 
-    // Delay untuk memastikan semua script sudah dimuat
-    setTimeout(initAnimations, 500)
+    // Delay untuk memastikan DOM sudah siap
+    setTimeout(initAnimations, 300)
+
+    // Cleanup
+    return () => {
+      if (window.ScrollTrigger) {
+        window.ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+      }
+    }
   }, [])
 
   return null

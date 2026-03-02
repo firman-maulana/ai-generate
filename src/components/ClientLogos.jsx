@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 
 const logos = [
@@ -31,24 +32,54 @@ const logos = [
 ]
 
 export default function ClientLogos() {
+  const marqueeRef = useRef(null)
+
+  useEffect(() => {
+    const initMarquee = () => {
+      if (typeof window.InfiniteMarquee === 'undefined') {
+        setTimeout(initMarquee, 100)
+        return
+      }
+
+      const container = marqueeRef.current
+      if (container && !container.classList.contains('marquee-initialized')) {
+        try {
+          new window.InfiniteMarquee({
+            element: container,
+            speed: 100000,
+            smoothEdges: true,
+            direction: 'left',
+            gap: '32px'
+          })
+          container.classList.add('marquee-initialized')
+        } catch (error) {
+          console.error('Marquee initialization error:', error)
+        }
+      }
+    }
+
+    setTimeout(initMarquee, 800)
+  }, [])
+
+  // Duplikasi logos untuk seamless scrolling
+  const allLogos = [...logos, ...logos, ...logos]
+
   return (
     <section>
       <div className="relative" data-ns-animate data-delay="0.2">
         {/* Gradient overlay left */}
-        <div className="absolute left-0 top-0 h-full w-[15%] md:w-[20%] bg-gradient-to-r from-white to-transparent dark:from-background-5 z-40" />
+        <div className="absolute left-0 top-0 h-full w-[15%] md:w-[20%] bg-gradient-to-r from-white to-transparent dark:from-background-5 z-40 pointer-events-none" />
 
         {/* Gradient overlay right */}
-        <div className="absolute right-0 top-0 h-full w-[15%] md:w-[20%] bg-gradient-to-l from-white to-transparent dark:from-background-5 z-40" />
+        <div className="absolute right-0 top-0 h-full w-[15%] md:w-[20%] bg-gradient-to-l from-white to-transparent dark:from-background-5 z-40 pointer-events-none" />
 
         {/* Marquee */}
-        <div className="logos-marquee-container" role="marquee">
-          <div className="flex items-center gap-8 justify-center py-7.5">
-            {logos.map((logo, index) => (
+        <div ref={marqueeRef} className="logos-marquee-container overflow-hidden" role="marquee">
+          <div className="flex items-center gap-8 py-7.5">
+            {allLogos.map((logo, index) => (
               <figure
                 key={index}
-                className={`min-w-[140px] md:min-w-[201px] ${
-                  index === 0 ? 'ml-8' : ''
-                }`}
+                className="min-w-[140px] md:min-w-[201px] flex-shrink-0"
               >
                 {/* Light */}
                 <Image
