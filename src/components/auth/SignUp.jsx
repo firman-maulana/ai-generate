@@ -1,13 +1,76 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
+import { useState } from 'react'
 
 export default function SignUp() {
   const router = useRouter()
+  const [errors, setErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    router.push('/signin')
+    setErrors({})
+
+    const username = e.target.username.value.trim()
+    const email = e.target.email.value.trim()
+    const password = e.target.password.value
+    const confirmPassword = e.target['confirm-password'].value
+
+    // Validasi
+    const newErrors = {}
+    if (!username) {
+      newErrors.username = "Username harus diisi"
+    }
+    if (!email) {
+      newErrors.email = "Email harus diisi"
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Format email tidak valid"
+    }
+    if (!password) {
+      newErrors.password = "Password harus diisi"
+    } else if (password.length < 8) {
+      newErrors.password = "Password minimal 8 karakter"
+    }
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Konfirmasi password harus diisi"
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Password tidak cocok"
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setIsLoading(true)
+
+    const res = await fetch("http://localhost:8000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
+    })
+
+    setIsLoading(false)
+
+    if (res.ok) {
+      alert("Registrasi berhasil! Silakan login.")
+      router.push("/signin")
+    } else {
+      const data = await res.json()
+      alert(data.detail || "Gagal daftar")
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true)
+    await signIn("google", { callbackUrl: "/chat" })
+  }
+
+  const handleFacebookSignIn = async () => {
+    setIsLoading(true)
+    await signIn("facebook", { callbackUrl: "/chat" })
   }
 
   return (
@@ -36,7 +99,11 @@ export default function SignUp() {
               id="username"
               className="auth-form-input"
               placeholder="Your unique identifier"
+              required
             />
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+            )}
           </fieldset>
           <fieldset className="space-y-2 mb-4">
             <label
@@ -50,7 +117,11 @@ export default function SignUp() {
               id="email"
               className="auth-form-input"
               placeholder="Email address"
+              required
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </fieldset>
           <fieldset className="space-y-2 mb-4">
             <label
@@ -64,7 +135,11 @@ export default function SignUp() {
               id="password"
               className="auth-form-input"
               placeholder="At least 8 characters"
+              required
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </fieldset>
           <fieldset className="space-y-2 mb-3">
             <label
@@ -78,14 +153,19 @@ export default function SignUp() {
               id="confirm-password"
               className="auth-form-input"
               placeholder="Re-enter your password"
+              required
             />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            )}
           </fieldset>
           <div className="mt-8">
             <button
               type="submit"
-              className="btn btn-md hover:btn-secondary dark:hover:btn-accent btn-primary w-full before:content-none first-letter:uppercase"
+              disabled={isLoading}
+              className="btn btn-md hover:btn-secondary dark:hover:btn-accent btn-primary w-full before:content-none first-letter:uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign up
+              {isLoading ? "Loading..." : "Sign up"}
             </button>
           </div>
         </form>
@@ -96,7 +176,11 @@ export default function SignUp() {
         </div>
         <div>
           <div className="space-y-4">
-            <button className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500">
+            <button 
+              className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
               <span className="size-6 block">
                 <img
                   src="/images/google.svg"
@@ -108,7 +192,11 @@ export default function SignUp() {
                 Continue with Google
               </span>
             </button>
-            <button className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500">
+            <button 
+              className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={handleFacebookSignIn}
+              disabled={isLoading}
+            >
               <span className="size-6 block">
                 <img
                   src="/images/facebook-v2.svg"
@@ -126,6 +214,5 @@ export default function SignUp() {
     </div>
   </div>
     </section>
-
   )
 }

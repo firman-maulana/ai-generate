@@ -1,17 +1,66 @@
 'use client'
 
+import { signIn } from "next-auth/react"
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function SignIn() {
   const router = useRouter()
+  const [errors, setErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    router.push('/chat')
+    setErrors({})
+
+    const email = e.target.email.value.trim()
+    const password = e.target.password.value
+
+    // Validasi
+    const newErrors = {}
+    if (!email) {
+      newErrors.email = "Email harus diisi"
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Format email tidak valid"
+    }
+    if (!password) {
+      newErrors.password = "Password harus diisi"
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setIsLoading(true)
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    })
+
+    setIsLoading(false)
+
+    if (!res.error) {
+      router.push("/chat")
+    } else {
+      alert("Login gagal. Periksa email dan password Anda.")
+    }
   }
 
   const handleCreateAccount = () => {
-    router.push('/signup')
+    router.push("/signup")
+  }
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true)
+    await signIn("google", { callbackUrl: "/chat" })
+  }
+
+  const handleFacebookSignIn = async () => {
+    setIsLoading(true)
+    await signIn("facebook", { callbackUrl: "/chat" })
   }
 
   return (
@@ -40,7 +89,11 @@ export default function SignIn() {
               id="email"
               className="auth-form-input"
               placeholder="Email address"
+              required
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </fieldset>
           <fieldset className="space-y-2 mb-4">
             <label
@@ -54,14 +107,19 @@ export default function SignIn() {
               id="password"
               className="auth-form-input"
               placeholder="At least 8 characters"
+              required
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </fieldset>
           <div className="mt-8">
             <button
               type="submit"
-              className="btn btn-md hover:btn-secondary dark:hover:btn-accent btn-primary w-full before:content-none first-letter:uppercase"
+              disabled={isLoading}
+              className="btn btn-md hover:btn-secondary dark:hover:btn-accent btn-primary w-full before:content-none first-letter:uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign in
+              {isLoading ? "Loading..." : "Sign in"}
             </button>
           </div>
         </form>
@@ -72,12 +130,21 @@ export default function SignIn() {
         </div>
         <div>
           <div className="space-y-4">
-            <button onClick={handleCreateAccount} type="button" className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500">
+            <button 
+              onClick={handleCreateAccount} 
+              type="button" 
+              disabled={isLoading}
+              className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <span className="text-tagline-2 font-medium text-secondary dark:text-accent group-hover:text-accent transition-colors duration-500 ease-in-out">
                 Create an account
               </span>
             </button>
-            <button className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500">
+            <button 
+              className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
               <span className="size-6 block">
                 <img
                   src="/images/google.svg"
@@ -89,7 +156,11 @@ export default function SignIn() {
                 Continue with Google
               </span>
             </button>
-            <button className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500">
+            <button 
+              className="flex items-center justify-center gap-2 w-full border border-stroke-3 dark:border-stroke-7 py-3 px-8 rounded-full cursor-pointer group transition-colors duration-500 ease-in-out hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={handleFacebookSignIn}
+              disabled={isLoading}
+            >
               <span className="size-6 block">
                 <img
                   src="/images/facebook-v2.svg"
