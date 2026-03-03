@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { useEffect, useState } from "react";
 
 import Hero from "@/components/Hero";
 import ClientLogos from "@/components/ClientLogos";
@@ -17,9 +18,26 @@ import AnimationInit from "@/components/AnimationInit";
 import Header from "@/components/Header";
 
 export default function Home() {
+
+  const [apiStatus, setApiStatus] = useState("checking...");
+
+  useEffect(() => {
+    fetch("http://localhost:8000/tes")
+      .then((res) => res.json())
+      .then((data) => setApiStatus(data.status))
+      .catch((err) => {
+        console.error("FETCH ERROR:", err);
+        setApiStatus("backend offline");
+      });
+  }, []);
+  
   return (
     <>
       <AnimationInit />
+      {/* 🔹 STATUS BACKEND (DEBUG, AMAN) */}
+      <div className="fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded text-sm z-50">
+        Backend: {apiStatus}
+      </div>
       <main className="space-y-10">
         <Header />
         <Hero />

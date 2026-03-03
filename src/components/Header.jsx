@@ -70,7 +70,7 @@ export default function Header() {
     data-offset={100}
   >
     <div>
-      <a href="./index.html">
+      <a href="/">
         <span className="sr-only">Home</span>
         <figure className="hidden lg:block lg:max-w-[198px]">
           <img
@@ -1889,7 +1889,7 @@ export default function Header() {
     <div className="hidden items-center justify-center xl:flex">
       <div className="group/btn-v2 {=$class} mx-auto inline-block w-[85%] rounded-full transition-transform duration-500 ease-in-out md:mx-0 md:w-auto">
         <a
-          href="./signup.html"
+          href="/signin"
           className="btn-md-v2 btn-secondary-v2 group-hover/btn-v2:btn-primary-v2 mx-auto inline-flex h-12 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full text-center font-medium text-nowrap lowercase transition-all duration-500 ease-in-out md:mx-0 md:h-auto md:w-auto"
         >
           <span className="inline-block transition-transform duration-300 ease-in-out first-letter:uppercase">

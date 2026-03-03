@@ -77,7 +77,7 @@ export default function Hero() {
               >
                 <div className="group/btn-v2 mx-auto inline-block w-[85%] rounded-full transition-transform duration-500 ease-in-out md:mx-0 md:w-auto">
                   <Link
-                    href="/signup"
+                    href="/signin"
                     className="btn-xl-v2 btn-gray-v2 group-hover/btn-v2:btn-secondary-v2 mx-auto inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-full text-center font-medium lowercase transition-all duration-500 ease-in-out md:h-auto md:w-auto"
                   >
                     <span className="inline-block transition-transform duration-300 ease-in-out first-letter:uppercase">
