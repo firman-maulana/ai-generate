@@ -1,16 +1,24 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import Sidebar from "./Sidebar"
 import PromptForm from "./PromptForm"
 
 export default function ChatLayout() {
+  const { data: session } = useSession()
   const [chats, setChats] = useState([])
   const [activeChatId, setActiveChatId] = useState(null)
 
-  // ✅ Load chats saat pertama kali render (biar tidak hilang saat refresh)
+  // ✅ Load chats saat user ID tersedia
   useEffect(() => {
+    if (!session?.user?.email) return
+
     const fetchChats = async () => {
-      const res = await fetch("http://localhost:8000/chats")
+      const res = await fetch(`http://localhost:8000/chats`, {
+        headers: {
+          'X-User-Email': session.user.email
+        }
+      })
       const data = await res.json()
 
       // format supaya ada messages array
@@ -23,15 +31,20 @@ export default function ChatLayout() {
     }
 
     fetchChats()
-  }, [])
+  }, [session])
 
   // ✅ Load messages saat chat dipilih
   useEffect(() => {
-    if (!activeChatId) return
+    if (!activeChatId || !session?.user?.email) return
 
     const fetchMessages = async () => {
       const res = await fetch(
-        `http://localhost:8000/messages/${activeChatId}`
+        `http://localhost:8000/messages/${activeChatId}`,
+        {
+          headers: {
+            'X-User-Email': session.user.email
+          }
+        }
       )
       const messages = await res.json()
 
@@ -39,12 +52,22 @@ export default function ChatLayout() {
     }
 
     fetchMessages()
-  }, [activeChatId])
+  }, [activeChatId, session])
 
   // ✅ Create chat (ambil ID dari backend)
   const createNewChat = async () => {
+    if (!session?.user?.email) {
+      console.error("User email not available")
+      return
+    }
+
     const res = await fetch("http://localhost:8000/create-chat", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Email": session.user.email
+      },
+      body: JSON.stringify({}),
     })
 
     const data = await res.json()
@@ -61,8 +84,13 @@ export default function ChatLayout() {
     return data.chat_id
   }
 
-  // ✅ Send prompt (FIX 422 di sini)
+  // ✅ Send prompt
   const sendPrompt = async (inputValue) => {
+    if (!session?.user?.email) {
+      console.error("User email not available")
+      return
+    }
+
     let chatId = activeChatId
 
     // kalau belum ada chat → buat dulu
@@ -75,21 +103,29 @@ export default function ChatLayout() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-User-Email": session.user.email
         },
         body: JSON.stringify({
           prompt: inputValue,
-          chat_id: Number(chatId), // pastikan number
+          chat_id: Number(chatId),
         }),
       })
 
       if (!res.ok) {
-        console.error("Generate error:", res.status)
+        const error = await res.json()
+        console.error("Generate error:", error)
+        alert(error.detail || "Failed to generate response")
         return
       }
 
       // ambil ulang messages
       const messagesRes = await fetch(
-        `http://localhost:8000/messages/${chatId}`
+        `http://localhost:8000/messages/${chatId}`,
+        {
+          headers: {
+            "X-User-Email": session.user.email
+          }
+        }
       )
       const messages = await messagesRes.json()
 
@@ -97,6 +133,7 @@ export default function ChatLayout() {
 
     } catch (err) {
       console.error("ERROR:", err)
+      alert("An error occurred. Please try again.")
     }
   }
 
@@ -118,6 +155,14 @@ export default function ChatLayout() {
   }
 
   const activeChat = chats.find(c => c.id === activeChatId)
+
+  if (!session?.user?.email) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.loading}>Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div style={styles.container}>
@@ -168,5 +213,10 @@ const styles = {
     background: "#0f172a",
     color: "white",
     cursor: "pointer",
+  },
+  loading: {
+    margin: "auto",
+    fontSize: "18px",
+    color: "#64748b",
   },
 }

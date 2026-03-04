@@ -18,7 +18,7 @@ export default function SignInPage() {
         <CtaSection />
         <Footer />
       </main>
-
+      
       {/* ===== TEMPLATE JS DEPENDENCIES ===== */}
       <Script src="/js/gsap.min.js" strategy="beforeInteractive" />
       <Script src="/js/scroll-trigger.min.js" strategy="beforeInteractive" />
