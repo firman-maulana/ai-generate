@@ -1,13 +1,17 @@
-"use client"
 import { useState, useRef } from "react"
-import { X, Upload } from "lucide-react"
+import { X, Upload, Loader2 } from "lucide-react"
+import { useSession } from "next-auth/react"
 
 export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
     const [videoFile, setVideoFile] = useState(null)
     const [videoPreview, setVideoPreview] = useState(null)
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
+    const [isUploading, setIsUploading] = useState(false)
     const videoInputRef = useRef(null)
+    const { data: session } = useSession()
+    const [error, setError] = useState(null)
+    const [durationText, setDurationText] = useState("00:00")
 
     const handleVideoChange = (e) => {
         const file = e.target.files?.[0]
@@ -15,12 +19,60 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
             setVideoFile(file)
             const url = URL.createObjectURL(file)
             setVideoPreview(url)
+
+            // Extract duration
+            const video = document.createElement('video')
+            video.preload = 'metadata'
+            video.onloadedmetadata = () => {
+                window.URL.revokeObjectURL(video.src)
+                const duration = video.duration
+                const minutes = Math.floor(duration / 60)
+                const seconds = Math.floor(duration % 60)
+                const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                setDurationText(formatted)
+            }
+            video.src = url
         }
     }
 
-    const handleSubmit = () => {
-        console.log({ videoFile, title, description })
-        handleClose()
+    const handleSubmit = async () => {
+        if (!videoFile || !title.trim() || !session?.user?.email) return
+
+        setIsUploading(true)
+        setError(null)
+
+        const formData = new FormData()
+        formData.append("file", videoFile)
+        formData.append("title", title)
+        formData.append("description", description)
+        formData.append("duration", durationText)
+
+        try {
+            const response = await fetch("http://localhost:8000/video-templates", {
+                method: "POST",
+                headers: {
+                    "X-User-Email": session.user.email
+                },
+                body: formData
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.detail || "Failed to post video")
+            }
+
+            const data = await response.json()
+            console.log("✅ Video posted:", data)
+            
+            // Refresh page or update list
+            window.location.reload() 
+            handleClose()
+        } catch (err) {
+            console.error("❌ Post error:", err)
+            setError(err instanceof Error ? err.message : String(err))
+        } finally {
+            setIsUploading(false)
+        }
     }
 
     const handleClose = () => {
@@ -28,6 +80,7 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
         setVideoPreview(null)
         setTitle("")
         setDescription("")
+        setDurationText("00:00")
         onClose()
     }
 
@@ -171,11 +224,17 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
                                 </div>
                             </div>
 
+                            {error && (
+                                <div className="text-xs text-red-500 mt-2">
+                                    {error}
+                                </div>
+                            )}
+
                             {/* Post Button */}
                             <button
                                 onClick={handleSubmit}
-                                disabled={!videoFile || !title.trim() || !description.trim()}
-                                className="self-end w-20 py-1 rounded-lg font-semibold text-sm transition-all mt-4"
+                                disabled={!videoFile || !title.trim() || isUploading}
+                                className="self-end px-6 py-2 rounded-lg font-semibold text-sm transition-all mt-4 flex items-center gap-2"
                                 style={{
                                     background: (videoFile && title.trim() && description.trim())
                                         ? "linear-gradient(135deg, #624bfa 0%, #bd7ffa 100%)"
@@ -183,13 +242,13 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
                                     color: (videoFile && title.trim() && description.trim())
                                         ? "#ffffff"
                                         : textSecondary,
-                                    cursor: (videoFile && title.trim() && description.trim())
+                                    cursor: (videoFile && title.trim() && description.trim() && !isUploading)
                                         ? "pointer"
                                         : "not-allowed",
-                                    opacity: (videoFile && title.trim() && description.trim()) ? 1 : 0.6
+                                    opacity: (videoFile && title.trim() && description.trim() && !isUploading) ? 1 : 0.6
                                 }}
                             >
-                                Post
+                                {isUploading ? <Loader2 className="animate-spin" size={16} /> : "Post"}
                             </button>
                         </div>
                     </div>

@@ -137,7 +137,12 @@ export default function Sidebar({ isDarkMode, toggleTheme }) {
               style={styles.profileImage}
             />
           ) : (
-            <User size={24} />
+            <div 
+              className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              style={{ background: getAvatarColor(session?.user?.name || session?.user?.email) }}
+            >
+              {(session?.user?.name || session?.user?.email || "U").charAt(0).toUpperCase()}
+            </div>
           )}
         </button>
 
