@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
     Plus, RectangleHorizontal, Clock, ArrowUp,
-    Heart, X, Image as ImageIcon, Trash2, Download
+    Heart, X, Image as ImageIcon, Trash2, Download,
+    Edit2, Trash
 } from "lucide-react"
 import PostVideoModal from "./PostVideoModal"
 import { useApp } from "@/contexts/AppContext"
@@ -22,6 +23,7 @@ export default function NewExploreContent({ isDarkMode = true }) {
     const [isDeleting, setIsDeleting] = useState(false);
     const promptBoxRef = useRef(null);
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+    const [editingVideo, setEditingVideo] = useState(null)
 
     const router = useRouter();
     const [floatingPromptText, setFloatingPromptText] = useState("");
@@ -81,23 +83,51 @@ export default function NewExploreContent({ isDarkMode = true }) {
         return () => window.removeEventListener('resize', updateCols);
     }, []);
 
-    useEffect(() => {
-        const fetchVideoTemplates = async () => {
-            try {
-                const response = await fetch("http://localhost:8000/video-templates");
-                if (response.ok) {
-                    const data = await response.json();
-                    setCommunityVideos(data);
-                }
-            } catch (err) {
-                console.error("❌ Failed to fetch video templates:", err);
-            } finally {
-                setIsLoading(false);
+    const fetchVideoTemplates = async () => {
+        try {
+            const response = await fetch("http://localhost:8000/video-templates");
+            if (response.ok) {
+                const data = await response.json();
+                setCommunityVideos(data);
             }
-        };
+        } catch (err) {
+            console.error("❌ Failed to fetch video templates:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchVideoTemplates();
     }, []);
+
+    const handleDeleteVideo = async (e, videoId) => {
+        e.stopPropagation()
+        if (!window.confirm("Are you sure you want to delete this video?")) return
+
+        try {
+            const response = await fetch(`http://localhost:8000/video-templates/${videoId}`, {
+                method: "DELETE",
+                headers: {
+                    "X-User-Email": session?.user?.email
+                }
+            })
+
+            if (response.ok) {
+                setCommunityVideos(prev => prev.filter(v => v.id !== videoId))
+            } else {
+                alert("Failed to delete video")
+            }
+        } catch (err) {
+            console.error("❌ Delete error:", err)
+        }
+    }
+
+    const openEditModal = (e, video) => {
+        e.stopPropagation()
+        setEditingVideo(video)
+        setIsPostModalOpen(true)
+    }
 
     // Typing effect
     useEffect(() => {
@@ -381,8 +411,21 @@ export default function NewExploreContent({ isDarkMode = true }) {
                                         src={video.videoUrl}
                                         className="w-full h-auto block object-contain"
                                         onMouseEnter={(e) => {
-                                            e.currentTarget.muted = false;
-                                            e.currentTarget.play();
+                                            const videoElement = e.currentTarget;
+                                            videoElement.muted = false;
+                                            const playPromise = videoElement.play();
+                                            if (playPromise !== undefined) {
+                                                playPromise.catch(error => {
+                                                    console.warn("Autoplay blocked: user hasn't interacted with document yet.");
+                                                    // Fallback to muted play if unmuted play fails
+                                                    if (videoElement) {
+                                                        videoElement.muted = true;
+                                                        videoElement.play().catch(err => {
+                                                            console.error("Muted playback also failed:", err);
+                                                        });
+                                                    }
+                                                });
+                                            }
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.pause();
@@ -396,9 +439,27 @@ export default function NewExploreContent({ isDarkMode = true }) {
 
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-                                    {/* Top right - Duration */}
-                                    <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-md text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                        {video.duration}
+                                    {/* Top right - Actions or Duration */}
+                                    <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        {session?.user?.email === video.userEmail && (
+                                            <>
+                                                <button 
+                                                    onClick={(e) => openEditModal(e, video)}
+                                                    className="bg-black/50 backdrop-blur-md p-1.5 rounded-md text-white hover:bg-blue-500 transition-colors pointer-events-auto"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => handleDeleteVideo(e, video.id)}
+                                                    className="bg-black/50 backdrop-blur-md p-1.5 rounded-md text-white hover:bg-red-500 transition-colors pointer-events-auto"
+                                                >
+                                                    <Trash size={14} />
+                                                </button>
+                                            </>
+                                        )}
+                                        <div className="bg-black/50 backdrop-blur-md px-2 py-1 rounded-md text-white text-xs font-medium pointer-events-none self-center">
+                                            {video.duration}
+                                        </div>
                                     </div>
 
                                     {/* Bottom bar */}
@@ -428,11 +489,16 @@ export default function NewExploreContent({ isDarkMode = true }) {
                 </div>
             </div>
 
-            {/* Post Video Modal */}
+            {/* Post/Edit Video Modal */}
             <PostVideoModal
                 isOpen={isPostModalOpen}
-                onClose={() => setIsPostModalOpen(false)}
+                onClose={() => {
+                    setIsPostModalOpen(false)
+                    setEditingVideo(null)
+                }}
                 isDarkMode={isDarkMode}
+                editingVideo={editingVideo}
+                onSuccess={fetchVideoTemplates}
             />
         </div>
     )

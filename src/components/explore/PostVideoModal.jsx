@@ -1,8 +1,8 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { X, Upload, Loader2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
-export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
+export default function PostVideoModal({ isOpen, onClose, isDarkMode = true, editingVideo = null, onSuccess }) {
     const [videoFile, setVideoFile] = useState(null)
     const [videoPreview, setVideoPreview] = useState(null)
     const [title, setTitle] = useState("")
@@ -12,6 +12,24 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
     const { data: session } = useSession()
     const [error, setError] = useState(null)
     const [durationText, setDurationText] = useState("00:00")
+
+    // Populate data if in edit mode
+    useEffect(() => {
+        if (editingVideo && isOpen) {
+            setTitle(editingVideo.title || "")
+            setDescription(editingVideo.description || "")
+            setDurationText(editingVideo.duration || "00:00")
+            setVideoPreview(editingVideo.videoUrl || null)
+            setVideoFile(null) // New file is not selected yet
+        } else if (!editingVideo && isOpen) {
+            // Reset for new post
+            setTitle("")
+            setDescription("")
+            setDurationText("00:00")
+            setVideoPreview(null)
+            setVideoFile(null)
+        }
+    }, [editingVideo, isOpen])
 
     const handleVideoChange = (e) => {
         const file = e.target.files?.[0]
@@ -36,20 +54,34 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
     }
 
     const handleSubmit = async () => {
-        if (!videoFile || !title.trim() || !session?.user?.email) return
+        const isEdit = !!editingVideo
+        
+        // Validation:
+        // If new post: must have videoFile and title
+        // If edit: must have title (videoFile is optional)
+        if (!title.trim() || !session?.user?.email) return
+        if (!isEdit && !videoFile) return
 
         setIsUploading(true)
         setError(null)
 
         const formData = new FormData()
-        formData.append("file", videoFile)
+        if (videoFile) {
+            formData.append("file", videoFile)
+            formData.append("duration", durationText)
+        }
         formData.append("title", title)
         formData.append("description", description)
-        formData.append("duration", durationText)
 
         try {
-            const response = await fetch("http://localhost:8000/video-templates", {
-                method: "POST",
+            const url = isEdit 
+                ? `http://localhost:8000/video-templates/${editingVideo.id}`
+                : "http://localhost:8000/video-templates"
+            
+            const method = isEdit ? "PUT" : "POST"
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     "X-User-Email": session.user.email
                 },
@@ -58,17 +90,20 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
 
             if (!response.ok) {
                 const errorData = await response.json()
-                throw new Error(errorData.detail || "Failed to post video")
+                throw new Error(errorData.detail || `Failed to ${isEdit ? 'update' : 'post'} video`)
             }
 
             const data = await response.json()
-            console.log("✅ Video posted:", data)
+            console.log(`✅ Video ${isEdit ? 'updated' : 'posted'}:`, data)
             
-            // Refresh page or update list
-            window.location.reload() 
+            if (onSuccess) {
+                onSuccess()
+            } else {
+                window.location.reload() 
+            }
             handleClose()
         } catch (err) {
-            console.error("❌ Post error:", err)
+            console.error(`❌ ${isEdit ? 'Update' : 'Post'} error:`, err)
             setError(err instanceof Error ? err.message : String(err))
         } finally {
             setIsUploading(false)
@@ -93,6 +128,8 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
     const textPrimary = isDarkMode ? "#ffffff" : "#0f172a"
     const textSecondary = isDarkMode ? "#9ca3af" : "#64748b"
 
+    const isEdit = !!editingVideo
+
     return (
         <div 
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -107,7 +144,7 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
                 {/* Header with Close Button */}
                 <div className="flex items-center justify-between p-6 pb-4">
                     <h2 className="text-lg font-semibold" style={{ color: textPrimary }}>
-                        Post your artwork for everyone to see
+                        {isEdit ? "Edit your artwork" : "Post your artwork for everyone to see"}
                     </h2>
                     <button
                         onClick={handleClose}
@@ -230,25 +267,25 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true }) {
                                 </div>
                             )}
 
-                            {/* Post Button */}
+                            {/* Action Button */}
                             <button
                                 onClick={handleSubmit}
-                                disabled={!videoFile || !title.trim() || isUploading}
+                                disabled={(!isEdit && !videoFile) || !title.trim() || isUploading}
                                 className="self-end px-6 py-2 rounded-lg font-semibold text-sm transition-all mt-4 flex items-center gap-2"
                                 style={{
-                                    background: (videoFile && title.trim() && description.trim())
+                                    background: ((isEdit || videoFile) && title.trim() && description.trim())
                                         ? "linear-gradient(135deg, #624bfa 0%, #bd7ffa 100%)"
                                         : isDarkMode ? "#374151" : "#cbd5e1",
-                                    color: (videoFile && title.trim() && description.trim())
+                                    color: ((isEdit || videoFile) && title.trim() && description.trim())
                                         ? "#ffffff"
                                         : textSecondary,
-                                    cursor: (videoFile && title.trim() && description.trim() && !isUploading)
+                                    cursor: ((isEdit || videoFile) && title.trim() && description.trim() && !isUploading)
                                         ? "pointer"
                                         : "not-allowed",
-                                    opacity: (videoFile && title.trim() && description.trim() && !isUploading) ? 1 : 0.6
+                                    opacity: ((isEdit || videoFile) && title.trim() && description.trim() && !isUploading) ? 1 : 0.6
                                 }}
                             >
-                                {isUploading ? <Loader2 className="animate-spin" size={16} /> : "Post"}
+                                {isUploading ? <Loader2 className="animate-spin" size={16} /> : (isEdit ? "Update" : "Post")}
                             </button>
                         </div>
                     </div>

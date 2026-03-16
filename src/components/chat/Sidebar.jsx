@@ -29,6 +29,19 @@ const SparkleIcon = ({ size = 24, filled = false, ...props }) => (
   </svg>
 )
 
+const getAvatarColor = (name) => {
+    const colors = [
+        '#FF5733', '#33FF57', '#3357FF', '#F333FF', '#33FFF3',
+        '#F3FF33', '#FF3385', '#8533FF', '#33FFB8', '#FFB833'
+    ];
+    let hash = 0;
+    const str = name || "Anonymous";
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+};
+
 export default function Sidebar({ isDarkMode, toggleTheme }) {
   const router = useRouter()
   const { data: session } = useSession()
