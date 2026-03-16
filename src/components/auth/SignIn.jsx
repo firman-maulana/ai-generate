@@ -43,7 +43,7 @@ export default function SignIn() {
     setIsLoading(false)
 
     if (!res.error) {
-      router.push("/chat")
+      router.push("/explore")
     } else {
       alert("Login gagal. Periksa email dan password Anda.")
     }
@@ -55,12 +55,12 @@ export default function SignIn() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
-    await signIn("google", { callbackUrl: "/chat" })
+    await signIn("google", { callbackUrl: "/explore" })
   }
 
   const handleFacebookSignIn = async () => {
     setIsLoading(true)
-    await signIn("facebook", { callbackUrl: "/chat" })
+    await signIn("facebook", { callbackUrl: "/explore" })
   }
 
   return (

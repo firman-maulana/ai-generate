@@ -81,9 +81,9 @@ export const authOptions = {
       return true
     },
     async redirect({ url, baseUrl }) {
-      // Redirect ke /chat setelah login berhasil
-      if (url.startsWith(baseUrl)) return `${baseUrl}/chat`
-      else if (url.startsWith("/")) return `${baseUrl}/chat`
+      // Redirect ke /explore setelah login berhasil
+      if (url.startsWith(baseUrl)) return `${baseUrl}/explore`
+      else if (url.startsWith("/")) return `${baseUrl}/explore`
       return baseUrl
     }
   },

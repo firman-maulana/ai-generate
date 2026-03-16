@@ -65,12 +65,12 @@ export default function SignUp() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
-    await signIn("google", { callbackUrl: "/chat" })
+    await signIn("google", { callbackUrl: "/explore" })
   }
 
   const handleFacebookSignIn = async () => {
     setIsLoading(true)
-    await signIn("facebook", { callbackUrl: "/chat" })
+    await signIn("facebook", { callbackUrl: "/explore" })
   }
 
   return (
