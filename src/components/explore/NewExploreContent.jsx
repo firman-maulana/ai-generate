@@ -101,34 +101,6 @@ export default function NewExploreContent({ isDarkMode = true }) {
         fetchVideoTemplates();
     }, []);
 
-    const handleDeleteVideo = async (e, videoId) => {
-        e.stopPropagation()
-        if (!window.confirm("Are you sure you want to delete this video?")) return
-
-        try {
-            const response = await fetch(`http://localhost:8000/video-templates/${videoId}`, {
-                method: "DELETE",
-                headers: {
-                    "X-User-Email": session?.user?.email
-                }
-            })
-
-            if (response.ok) {
-                setCommunityVideos(prev => prev.filter(v => v.id !== videoId))
-            } else {
-                alert("Failed to delete video")
-            }
-        } catch (err) {
-            console.error("❌ Delete error:", err)
-        }
-    }
-
-    const openEditModal = (e, video) => {
-        e.stopPropagation()
-        setEditingVideo(video)
-        setIsPostModalOpen(true)
-    }
-
     // Typing effect
     useEffect(() => {
         const currentText = texts[textIndex];
@@ -406,7 +378,11 @@ export default function NewExploreContent({ isDarkMode = true }) {
                     {columns.map((colVideos, colIndex) => (
                         <div key={colIndex} className="flex flex-col gap-4 flex-1 min-w-0">
                             {colVideos.map((video) => (
-                                <div key={video.id} className="group relative overflow-hidden cursor-pointer transition-all duration-300 shadow-sm outline-none bg-black rounded-lg">
+                                <div 
+                                    key={video.id} 
+                                    className="group relative overflow-hidden cursor-pointer transition-all duration-300 shadow-sm outline-none bg-black rounded-lg"
+                                    onClick={() => router.push(`/use-template/${video.id}`)}
+                                >
                                     <video
                                         src={video.videoUrl}
                                         className="w-full h-auto block object-contain"
@@ -439,24 +415,8 @@ export default function NewExploreContent({ isDarkMode = true }) {
 
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-                                    {/* Top right - Actions or Duration */}
+                                    {/* Top right - Duration only (Edit/Delete moved to UseTemplate) */}
                                     <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        {session?.user?.email === video.userEmail && (
-                                            <>
-                                                <button 
-                                                    onClick={(e) => openEditModal(e, video)}
-                                                    className="bg-black/50 backdrop-blur-md p-1.5 rounded-md text-white hover:bg-blue-500 transition-colors pointer-events-auto"
-                                                >
-                                                    <Edit2 size={14} />
-                                                </button>
-                                                <button 
-                                                    onClick={(e) => handleDeleteVideo(e, video.id)}
-                                                    className="bg-black/50 backdrop-blur-md p-1.5 rounded-md text-white hover:bg-red-500 transition-colors pointer-events-auto"
-                                                >
-                                                    <Trash size={14} />
-                                                </button>
-                                            </>
-                                        )}
                                         <div className="bg-black/50 backdrop-blur-md px-2 py-1 rounded-md text-white text-xs font-medium pointer-events-none self-center">
                                             {video.duration}
                                         </div>
