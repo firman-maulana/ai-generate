@@ -83,13 +83,26 @@ export default function PromptPanel({ isDarkMode, prompt, setPrompt, images, set
                 })
                 const data = await res.json()
                 if (data.url) {
-                    setImages(prev => [...prev, { url: data.url, preview: URL.createObjectURL(file) }])
+                    // Automatically mark the first image as reference if none exist
+                    const isFirst = images.length === 0 && images.length + files.indexOf(file) === 0;
+                    setImages(prev => [...prev, { 
+                        url: data.url, 
+                        preview: URL.createObjectURL(file),
+                        isReference: isFirst 
+                    }])
                 }
             } catch (err) {
                 console.error('Upload failed:', err)
             }
         }
         e.target.value = ''
+    }
+
+    const toggleReference = (idx) => {
+        setImages(prev => prev.map((img, i) => ({
+            ...img,
+            isReference: i === idx
+        })))
     }
 
     const removeImage = (idx) => setImages(prev => prev.filter((_, i) => i !== idx))
@@ -276,7 +289,7 @@ export default function PromptPanel({ isDarkMode, prompt, setPrompt, images, set
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }}
-                            placeholder={images.length > 0 ? "Describe the change..." : "Describe your idea"}
+                            placeholder={images.some(img => img.isReference) ? "Describe the edit (e.g. 'change face to this')..." : "Describe your idea..."}
                             className="bg-transparent text-[13px] font-medium outline-none resize-none w-full overflow-hidden"
                             rows={1}
                             style={{ color: textPrimary, caretColor: textPrimary, lineHeight: '1.6' }}
@@ -309,16 +322,32 @@ export default function PromptPanel({ isDarkMode, prompt, setPrompt, images, set
                                     <div
                                         key={index}
                                         className="relative shrink-0 group cursor-pointer"
-                                        onClick={() => removeImage(index)}
-                                        title="Click to remove"
+                                        title={imgObj.isReference ? "Reference Image (Click to unmark)" : "Click to set as Reference"}
+                                        onClick={(e) => {
+                                            if (e.shiftKey) removeImage(index)
+                                            else toggleReference(index)
+                                        }}
                                     >
                                         <img
                                             src={imgObj.preview || imgObj.url || imgObj}
                                             alt={`Preview ${index + 1}`}
                                             className="w-8 h-8 rounded-lg object-cover transition-all"
-                                            style={{ border: `2px solid ${pillBorder}` }}
+                                            style={{ 
+                                                border: imgObj.isReference 
+                                                    ? `2px solid #624bfa` 
+                                                    : `2px solid ${pillBorder}`,
+                                                boxShadow: imgObj.isReference ? '0 0 8px rgba(98, 75, 250, 0.4)' : 'none'
+                                            }}
                                         />
-                                        <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        {imgObj.isReference && (
+                                            <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#624bfa] rounded-full flex items-center justify-center border border-white">
+                                                <Sparkle size={6} color="white" fill="white" />
+                                            </div>
+                                        )}
+                                        <div 
+                                            className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                            onClick={(e) => { e.stopPropagation(); removeImage(index) }}
+                                        >
                                             <Trash2 size={12} style={{ color: '#ef4444' }} />
                                         </div>
                                     </div>

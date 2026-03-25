@@ -72,6 +72,9 @@ export default function UseTemplateLayout() {
         setGeneratedVideo(null)
         setError(null)
         try {
+            const referenceImage = images.find(img => img.isReference)?.url || null;
+            const otherImages = images.filter(img => !img.isReference).map(img => img.url || img);
+
             const res = await fetch('http://localhost:8000/generate-video', {
                 method: 'POST',
                 headers: {
@@ -81,7 +84,8 @@ export default function UseTemplateLayout() {
                 body: JSON.stringify({
                     prompt,
                     input_video_url: template?.videoUrl,
-                    image_url: images[0]?.url || images[0] || null,
+                    image_url: otherImages[0] || null,
+                    reference_image_url: referenceImage,
                     model: 'runway',
                     duration: 5
                 })
