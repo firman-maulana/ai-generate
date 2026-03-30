@@ -44,6 +44,16 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true, edi
             video.onloadedmetadata = () => {
                 window.URL.revokeObjectURL(video.src)
                 const duration = video.duration
+                
+                if (duration > 10.5) {
+                    setError("Video must be 10 seconds or shorter.")
+                    setVideoFile(null)
+                    setVideoPreview(null)
+                    setDurationText("00:00")
+                    return
+                }
+                
+                setError(null) // clear previous duration errors
                 const minutes = Math.floor(duration / 60)
                 const seconds = Math.floor(duration % 60)
                 const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
@@ -198,8 +208,11 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true, edi
                                         >
                                             <Upload size={24} style={{ color: textSecondary }} />
                                         </div>
-                                        <p className="text-xs font-medium px-4 text-center" style={{ color: textSecondary }}>
+                                        <p className="text-xs font-medium px-4 text-center mt-2" style={{ color: textPrimary }}>
                                             Click to upload video
+                                        </p>
+                                        <p className="text-xs text-center px-4" style={{ color: textSecondary }}>
+                                            (Max 10 seconds)
                                         </p>
                                     </div>
                                 )}
@@ -270,19 +283,19 @@ export default function PostVideoModal({ isOpen, onClose, isDarkMode = true, edi
                             {/* Action Button */}
                             <button
                                 onClick={handleSubmit}
-                                disabled={(!isEdit && !videoFile) || !title.trim() || isUploading}
+                                disabled={(!isEdit && !videoFile) || !title.trim() || isUploading || !!error}
                                 className="self-end px-6 py-2 rounded-lg font-semibold text-sm transition-all mt-4 flex items-center gap-2"
                                 style={{
-                                    background: ((isEdit || videoFile) && title.trim() && description.trim())
+                                    background: ((isEdit || videoFile) && title.trim() && description.trim() && !error)
                                         ? "linear-gradient(135deg, #624bfa 0%, #bd7ffa 100%)"
                                         : isDarkMode ? "#374151" : "#cbd5e1",
-                                    color: ((isEdit || videoFile) && title.trim() && description.trim())
+                                    color: ((isEdit || videoFile) && title.trim() && description.trim() && !error)
                                         ? "#ffffff"
                                         : textSecondary,
-                                    cursor: ((isEdit || videoFile) && title.trim() && description.trim() && !isUploading)
+                                    cursor: ((isEdit || videoFile) && title.trim() && description.trim() && !isUploading && !error)
                                         ? "pointer"
                                         : "not-allowed",
-                                    opacity: ((isEdit || videoFile) && title.trim() && description.trim() && !isUploading) ? 1 : 0.6
+                                    opacity: ((isEdit || videoFile) && title.trim() && description.trim() && !isUploading && !error) ? 1 : 0.6
                                 }}
                             >
                                 {isUploading ? <Loader2 className="animate-spin" size={16} /> : (isEdit ? "Update" : "Post")}

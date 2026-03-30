@@ -70,7 +70,7 @@ export default function ChatLayout() {
   }, [session])
 
   // ✅ Send prompt
-  const sendPrompt = async (inputValue, imageUrl = null, editMessageId = null, pendingImages = []) => {
+  const sendPrompt = async (inputValue, imageUrl = null, editMessageId = null, imageUrls = []) => {
     if (!session?.user?.email) {
       console.error("User email not available")
       return
@@ -79,32 +79,13 @@ export default function ChatLayout() {
     startGenerating()
 
     try {
-      // Upload pending images from explore if any
-      let finalImageUrl = imageUrl
-      if (!finalImageUrl && pendingImages.length > 0) {
-        // Convert base64 to file and upload
-        const base64Image = pendingImages[0]
-        const response = await fetch(base64Image)
-        const blob = await response.blob()
-        const file = new File([blob], "explore-image.jpg", { type: "image/jpeg" })
-        
-        const formData = new FormData()
-        formData.append("file", file)
-        
-        const uploadRes = await fetch("http://localhost:8000/upload-image", {
-          method: "POST",
-          headers: {
-            "X-User-Email": session.user.email
-          },
-          body: formData
-        })
-        
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json()
-          if (uploadData.success) {
-            finalImageUrl = uploadData.url
-          }
-        }
+      // Gunakan imageUrls jika ada (multiple images), fallback ke imageUrl (single)
+      let finalImageUrls = []
+      
+      if (imageUrls && imageUrls.length > 0) {
+        finalImageUrls = imageUrls
+      } else if (imageUrl) {
+        finalImageUrls = [imageUrl]
       }
       
       const payload = {
@@ -116,9 +97,10 @@ export default function ChatLayout() {
         payload.edit_message_id = editMessageId
       }
       
-      // Tambahkan image_url jika ada
-      if (finalImageUrl) {
-        payload.image_url = finalImageUrl
+      // Tambahkan image_url (untuk backward compatibility) dan image_urls (untuk multiple)
+      if (finalImageUrls.length > 0) {
+        payload.image_url = finalImageUrls[0] // Foto pertama sebagai primary
+        payload.image_urls = finalImageUrls // Semua foto
       }
       
       console.log("📤 Sending payload:", payload)
@@ -147,7 +129,10 @@ export default function ChatLayout() {
           id: newId, // Temporary ID
           role: "user",
           content: inputValue,
-          meta_data: finalImageUrl ? { image_url: finalImageUrl } : null,
+          meta_data: finalImageUrls.length > 0 ? { 
+            image_url: finalImageUrls[0], // Backward compatibility
+            image_urls: finalImageUrls // Multiple images
+          } : null,
           date: new Date().toISOString().split('T')[0]
         }
         

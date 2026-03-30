@@ -119,15 +119,23 @@ export default function ModernPromptForm({ chat, sendPrompt, isDarkMode, isGener
   })
 
   const handleImageSelect = (e) => {
-    const file = e.target.files?.[0]
-    if (file && uploadedImages.length < 3) {
+    const files = Array.from(e.target.files || [])
+    
+    if (uploadedImages.length + files.length > 3) {
+      alert('Maksimal 3 foto')
+      e.target.value = ''
+      return
+    }
+    
+    files.forEach(file => {
       const reader = new FileReader()
       reader.onloadend = (event) => {
         setUploadedImages(prev => [...prev, { file, preview: event.target?.result }])
       }
       reader.readAsDataURL(file)
-      e.target.value = ''
-    }
+    })
+    
+    e.target.value = ''
   }
 
   const removeImage = (index) => {
@@ -173,11 +181,11 @@ export default function ModernPromptForm({ chat, sendPrompt, isDarkMode, isGener
     setUploading(true)
 
     try {
-      let imageUrl = null
-      
-      // we only upload the first image to match API spec currently
-      if (uploadedImages.length > 0) {
-        imageUrl = await uploadImage(uploadedImages[0].file)
+      // Upload semua foto ke Supabase
+      const imageUrls = []
+      for (const imgObj of uploadedImages) {
+        const url = await uploadImage(imgObj.file)
+        imageUrls.push(url)
       }
       
       // Clear input and images immediately after submit
@@ -185,7 +193,8 @@ export default function ModernPromptForm({ chat, sendPrompt, isDarkMode, isGener
       setInput("")
       setUploadedImages([])
       
-      await sendPrompt(promptText, imageUrl)
+      // Kirim foto pertama sebagai image_url utama, sisanya bisa disimpan di metadata
+      await sendPrompt(promptText, imageUrls.length > 0 ? imageUrls[0] : null, null, imageUrls)
 
     } catch (error) {
       console.error("Submit error:", error)
@@ -353,8 +362,27 @@ export default function ModernPromptForm({ chat, sendPrompt, isDarkMode, isGener
                     maxWidth: "min(800px, 92%)"
                   }}
                 >
-                  {/* Image Outside Bubble */}
-                  {msg.role === "user" && msg.meta_data?.image_url && (
+                  {/* Images Outside Bubble - Aligned Right for User */}
+                  {msg.role === "user" && msg.meta_data?.image_urls && msg.meta_data.image_urls.length > 0 && (
+                    <div style={{ 
+                      display: "flex", 
+                      gap: "8px", 
+                      flexWrap: "wrap", 
+                      marginBottom: "8px",
+                      justifyContent: "flex-end"
+                    }}>
+                      {msg.meta_data.image_urls.map((url, idx) => (
+                        <img 
+                          key={idx}
+                          src={url} 
+                          alt={`Uploaded ${idx + 1}`} 
+                          style={{ ...styles.uploadedImage, marginBottom: 0 }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {/* Fallback untuk single image (backward compatibility) */}
+                  {msg.role === "user" && msg.meta_data?.image_url && !msg.meta_data?.image_urls && (
                     <img 
                       src={msg.meta_data.image_url} 
                       alt="Uploaded" 
@@ -369,6 +397,7 @@ export default function ModernPromptForm({ chat, sendPrompt, isDarkMode, isGener
                       ...(msg.role === "user" ? styles.userMessage : styles.aiMessage),
                       position: "relative",
                       wordBreak: "break-word",
+                      alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
                       ...(editingMessageId === (msg.id || index)
                         ? { width: "100%", minWidth: "min(600px, 80vw)" }
                         : { width: "fit-content" })
@@ -538,6 +567,7 @@ export default function ModernPromptForm({ chat, sendPrompt, isDarkMode, isGener
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleImageSelect}
                       className="hidden"
                     />

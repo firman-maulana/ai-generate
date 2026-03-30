@@ -45,16 +45,56 @@ export default function NewExploreContent({ isDarkMode = true }) {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [activeDropdown])
 
-    const handleExplorePromptSubmit = (text, images = []) => {
+    const handleExplorePromptSubmit = async (text, images = []) => {
         if (!text || text.trim().length < 30 || isGenerating) return;
         localStorage.setItem('pendingPrompt', text);
 
-        // Simpan flag bahwa ada gambar, bukan gambar itu sendiri (terlalu besar untuk localStorage)
-        if (images.length > 0) {
+        const finalUrls = [];
+        
+        // Upload semua foto ke Supabase sebelum redirect
+        for (let i = 0; i < images.length; i++) {
+            const img = images[i];
+            if (img.file) {
+                const formData = new FormData();
+                formData.append('file', img.file);
+                try {
+                    const res = await fetch('http://localhost:8000/upload-image', {
+                        method: 'POST',
+                        headers: { 'X-User-Email': session?.user?.email || '' },
+                        body: formData
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.url) finalUrls.push(data.url);
+                    }
+                } catch (err) {
+                    console.error('Failed to upload explore image', err);
+                }
+            } else if (img.preview) {
+                // Jika ada preview tapi belum di-upload
+                const formData = new FormData();
+                formData.append('file', img.file);
+                try {
+                    const res = await fetch('http://localhost:8000/upload-image', {
+                        method: 'POST',
+                        headers: { 'X-User-Email': session?.user?.email || '' },
+                        body: formData
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.url) finalUrls.push(data.url);
+                    }
+                } catch (err) {
+                    console.error('Failed to upload explore image', err);
+                }
+            } else if (typeof img === 'string') {
+                finalUrls.push(img);
+            }
+        }
+
+        if (finalUrls.length > 0) {
             localStorage.setItem('pendingImagesFlag', 'true');
-            // Simpan gambar ke sessionStorage yang lebih besar, atau gunakan IndexedDB
-            // Untuk sementara, kita akan pass gambar via state saat navigate
-            sessionStorage.setItem('pendingImages', JSON.stringify(images));
+            sessionStorage.setItem('pendingImages', JSON.stringify(finalUrls));
         } else {
             localStorage.removeItem('pendingImagesFlag');
             sessionStorage.removeItem('pendingImages');
@@ -138,16 +178,19 @@ export default function NewExploreContent({ isDarkMode = true }) {
     };
 
     const handleImageChange = (e) => {
-        const file = e.target.files?.[0];
-        if (file && uploadedImages.length < 3) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setUploadedImages(prev => [...prev, event.target?.result]);
-            };
-            reader.readAsDataURL(file);
-            // Reset input untuk bisa upload file yang sama lagi
-            e.target.value = '';
+        const files = Array.from(e.target.files || []);
+        if (uploadedImages.length + files.length > 3) {
+            alert('Maksimal 3 foto');
+            return;
         }
+
+        const newImages = files.map(file => ({
+            file,
+            preview: URL.createObjectURL(file)
+        }));
+
+        setUploadedImages(prev => [...prev, ...newImages]);
+        e.target.value = '';
     };
 
     const removeImage = (index) => {
@@ -194,7 +237,22 @@ export default function NewExploreContent({ isDarkMode = true }) {
     return (
         <div className="flex-1 overflow-y-auto pb-40 relative" style={{ background: bgMain }}>
             {/* Top Header */}
-            <div className="flex justify-center items-center mt-20 mb-10">
+            <div className="flex justify-center items-center mt-20 mb-10" style={{ minHeight: '40px', position: 'relative' }}>
+                {/* Invisible placeholder untuk reserve space */}
+                <h1 
+                    className="text-[22px] font-bold flex items-center gap-2" 
+                    style={{ 
+                        color: 'transparent', 
+                        visibility: 'hidden',
+                        position: 'absolute',
+                        pointerEvents: 'none'
+                    }}
+                    aria-hidden="true"
+                >
+                    Generate Videos Instantly With AI
+                </h1>
+                
+                {/* Actual typing text */}
                 <h1 className="text-[22px] font-bold flex items-center gap-2" style={{ color: textPrimary }}>
                     {typedText.split(' ').map((word, index, array) => {
                         // Gradient style
@@ -265,6 +323,7 @@ export default function NewExploreContent({ isDarkMode = true }) {
                                     ref={imageInputRef}
                                     type="file"
                                     accept="image/*"
+                                    multiple
                                     onChange={handleImageChange}
                                     className="hidden"
                                 />
@@ -279,7 +338,7 @@ export default function NewExploreContent({ isDarkMode = true }) {
                                 onClick={() => removeImage(index)}
                             >
                                 <img
-                                    src={image}
+                                    src={image.preview || image}
                                     alt={`Preview ${index + 1}`}
                                     className="w-10 h-10 rounded-lg object-cover transition-all"
                                     style={{ border: `2px solid ${borderBox}` }}
